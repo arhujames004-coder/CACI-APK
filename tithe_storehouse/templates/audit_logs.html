@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Immutable Audit Trail{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-4 align-items-center">
+    <div class="col-12 col-md-8">
+        <h3 class="fw-bold text-navy mb-0"><i class="bi bi-shield-check text-success me-2"></i>Audit Log</h3>
+        <p class="text-muted small mb-0">Append-only cryptographic security log. Database triggers prevent editing or deletion of records.</p>
+    </div>
+    <div class="col-12 col-md-4 text-md-end">
+        <span class="badge bg-success py-2 px-3"><i class="bi bi-lock-fill me-1"></i> SQLite Immutability Triggers Active</span>
+    </div>
+</div>
+
+<div class="alert alert-info py-2 d-flex align-items-center mb-4" role="alert">
+    <i class="bi bi-info-circle-fill me-2 fs-5"></i>
+    <div class="small">
+        Every USSD menu navigation, charge calculation, Paystack payment initiation, webhook verification, SMS dispatch, and admin login is logged permanently.
+    </div>
+</div>
+
+<div class="card p-3">
+    <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle mb-0 font-monospace">
+            <thead class="table-light">
+                <tr>
+                    <th style="width: 70px;">ID</th>
+                    <th style="width: 170px;">Timestamp</th>
+                    <th>Actor</th>
+                    <th>Action</th>
+                    <th>Entity Type / ID</th>
+                    <th>Details</th>
+                    <th>IP Address</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td class="text-muted">#{{ log.id }}</td>
+                    <td class="small">{{ log.created_at }}</td>
+                    <td>
+                        <span class="badge {% if log.actor == 'ussd' %}bg-primary{% elif log.actor == 'paystack_webhook' %}bg-success{% elif log.actor == 'system' %}bg-secondary{% else %}bg-warning text-dark{% endif %}">
+                            {{ log.actor }}
+                        </span>
+                    </td>
+                    <td class="fw-bold">{{ log.action }}</td>
+                    <td>
+                        {% if log.entity_type %}
+                        <span class="badge bg-light text-dark border">{{ log.entity_type }}</span>
+                        {% endif %}
+                        {% if log.entity_id %}
+                        <span class="small">{{ log.entity_id }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="small text-break" style="max-width: 320px;">
+                        <span title="{{ log.details }}">{{ log.details }}</span>
+                    </td>
+                    <td class="small text-muted">{{ log.ip_address or "127.0.0.1" }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center py-4 text-muted">No audit entries logged yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

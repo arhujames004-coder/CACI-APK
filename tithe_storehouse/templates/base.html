@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Tithe Storehouse{% endblock %} - {{ config.CHURCH_NAME }}</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-church: #1B365D;
+            --secondary-church: #2E5B88;
+            --gold-accent: #D4AF37;
+            --bg-light: #F4F7FB;
+        }
+        body {
+            background-color: var(--bg-light);
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .navbar-church {
+            background-color: var(--primary-church);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+        }
+        .navbar-brand {
+            font-weight: 700;
+            color: #fff !important;
+            letter-spacing: 0.5px;
+        }
+        .badge-gold {
+            background-color: var(--gold-accent);
+            color: #1a1a1a;
+            font-weight: 600;
+        }
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(27, 54, 93, 0.06);
+            transition: transform 0.15s ease-in-out;
+        }
+        .stat-card {
+            border-left: 4px solid var(--primary-church);
+        }
+        .stat-card.fees {
+            border-left-color: #f59e0b;
+        }
+        .stat-card.net {
+            border-left-color: #10b981;
+        }
+        .stat-card.donors {
+            border-left-color: #6366f1;
+        }
+        .table-responsive {
+            border-radius: 10px;
+            background: #fff;
+        }
+        .btn-church {
+            background-color: var(--primary-church);
+            color: #fff;
+        }
+        .btn-church:hover {
+            background-color: var(--secondary-church);
+            color: #fff;
+        }
+        footer {
+            margin-top: auto;
+            background: #fff;
+            border-top: 1px solid #e2e8f0;
+            padding: 1rem 0;
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-church sticky-top">
+        <div class="container-fluid px-3">
+            <a class="navbar-brand d-flex align-items-center" href="{{ url_for('admin_dashboard') if session.get('is_admin') else url_for('admin_login') }}">
+                <i class="bi bi-bank2 me-2 text-warning fs-4"></i>
+                <span>Tithe Storehouse</span>
+            </a>
+            {% if session.get('is_admin') %}
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#churchNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="churchNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'admin_dashboard' %}active text-warning fw-bold{% endif %}" href="{{ url_for('admin_dashboard') }}">
+                            <i class="bi bi-speedometer2 me-1"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'admin_transactions' %}active text-warning fw-bold{% endif %}" href="{{ url_for('admin_transactions') }}">
+                            <i class="bi bi-receipt-cutoff me-1"></i> Giving Records
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'admin_members' %}active text-warning fw-bold{% endif %}" href="{{ url_for('admin_members') }}">
+                            <i class="bi bi-people me-1"></i> Members
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'admin_audit_logs' %}active text-warning fw-bold{% endif %}" href="{{ url_for('admin_audit_logs') }}">
+                            <i class="bi bi-shield-check me-1"></i> Audit Trail
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'admin_settings' %}active text-warning fw-bold{% endif %}" href="{{ url_for('admin_settings') }}">
+                            <i class="bi bi-sliders me-1"></i> Setup & Tools
+                        </a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-light text-dark d-none d-md-inline-block">
+                        <i class="bi bi-telephone me-1"></i>{{ config.CHURCH_SHORTCODE }}
+                    </span>
+                    <a href="{{ url_for('admin_export_csv') }}" class="btn btn-sm btn-outline-light">
+                        <i class="bi bi-download me-1"></i> Export CSV
+                    </a>
+                    <a href="{{ url_for('admin_logout') }}" class="btn btn-sm btn-danger">
+                        <i class="bi bi-box-arrow-right"></i> Sign Out
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </nav>
+
+    <main class="container-fluid px-3 py-3">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category if category != 'error' else 'danger' }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <div class="container text-center">
+            <span>{{ config.CHURCH_NAME }} • "Bring all the tithes into the storehouse" (Malachi 3:10) • Single-file SQLite Storage</span>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

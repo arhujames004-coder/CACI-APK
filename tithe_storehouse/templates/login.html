@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Sign In - Admin Console{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center" style="min-height: 70vh;">
+    <div class="col-11 col-sm-8 col-md-6 col-lg-4">
+        <div class="card shadow-lg p-4">
+            <div class="text-center mb-4">
+                <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary rounded-circle mb-3" style="width: 64px; height: 64px;">
+                    <i class="bi bi-shield-lock fs-2"></i>
+                </div>
+                <h4 class="fw-bold mb-1">Tithe Storehouse</h4>
+                <p class="text-muted small mb-0">{{ config.CHURCH_NAME }} Treasury Portal</p>
+            </div>
+
+            <form method="POST" action="{{ url_for('admin_login') }}">
+                <div class="mb-3">
+                    <label for="username" class="form-label fw-semibold">Admin Username</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-person"></i></span>
+                        <input type="text" class="form-control" id="username" name="username" required autofocus placeholder="admin">
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="password" class="form-label fw-semibold">Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-key"></i></span>
+                        <input type="password" class="form-control" id="password" name="password" required placeholder="Enter password">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-church w-100 py-2 fw-semibold">
+                    <i class="bi bi-box-arrow-in-right me-1"></i> Sign In to Storehouse
+                </button>
+            </form>
+
+            <div class="mt-4 p-2 bg-light rounded text-center small text-muted">
+                <i class="bi bi-info-circle me-1"></i> Default test credentials: <code>admin</code> / <code>GraceTithe2026!</code>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

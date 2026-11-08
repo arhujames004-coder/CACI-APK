@@ -1,0 +1,6 @@
+{
+  "name": "Tithe Storehouse",
+  "description": "Secure phone-first church tithe and offering giving system with USSD, SMS, Paystack, and Admin Dashboard",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

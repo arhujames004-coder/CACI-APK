@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-4">
+    <div class="col-12 col-md-8">
+        <h3 class="fw-bold text-navy mb-0">Treasury & Giving Overview</h3>
+        <p class="text-muted small mb-0">{{ config.CHURCH_NAME }} • Real-time Africa's Talking & Paystack Ledger</p>
+    </div>
+    <div class="col-12 col-md-4 text-md-end d-flex gap-2 justify-content-md-end">
+        <a href="{{ url_for('admin_export_csv') }}" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-file-earmark-spreadsheet me-1"></i> Export CSV
+        </a>
+        <a href="{{ url_for('admin_settings') }}" class="btn btn-church btn-sm">
+            <i class="bi bi-phone me-1"></i> Test USSD & Webhook
+        </a>
+    </div>
+</div>
+
+<!-- 4 Core Metric Cards (Gross, Fees, Net, Donors) -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="card p-3 stat-card net h-100">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-muted small fw-semibold">Net Received by Church</span>
+                    <h3 class="fw-bold mb-0 text-success">{{ config.CURRENCY }} {{ "%.2f"|format(metrics.net_amount) }}</h3>
+                </div>
+                <div class="bg-success bg-opacity-10 text-success p-2 rounded-circle">
+                    <i class="bi bi-cash-stack fs-4"></i>
+                </div>
+            </div>
+            <div class="mt-2 text-muted small">
+                Net funds available for ministry
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-lg-3">
+        <div class="card p-3 stat-card fees h-100">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-muted small fw-semibold">Processing Fees</span>
+                    <h3 class="fw-bold mb-0 text-warning">{{ config.CURRENCY }} {{ "%.2f"|format(metrics.fee_amount) }}</h3>
+                </div>
+                <div class="bg-warning bg-opacity-10 text-warning p-2 rounded-circle">
+                    <i class="bi bi-percent fs-4"></i>
+                </div>
+            </div>
+            <div class="mt-2 text-muted small">
+                {{ config.FEE_TYPE }}: {{ config.FEE_VALUE }}{% if config.FEE_TYPE == 'PERCENT' %}%{% else %} {{ config.CURRENCY }}{% endif %} (Donor-covered)
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-lg-3">
+        <div class="card p-3 stat-card h-100">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-muted small fw-semibold">Total Gross Donated</span>
+                    <h3 class="fw-bold mb-0 text-primary">{{ config.CURRENCY }} {{ "%.2f"|format(metrics.gross_amount) }}</h3>
+                </div>
+                <div class="bg-primary bg-opacity-10 text-primary p-2 rounded-circle">
+                    <i class="bi bi-wallet2 fs-4"></i>
+                </div>
+            </div>
+            <div class="mt-2 text-muted small">
+                {{ metrics.total_successful_count }} successful gifts
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-lg-3">
+        <div class="card p-3 stat-card donors h-100">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-muted small fw-semibold">Registered Donors</span>
+                    <h3 class="fw-bold mb-0 text-dark">{{ metrics.member_count }}</h3>
+                </div>
+                <div class="bg-info bg-opacity-10 text-info p-2 rounded-circle">
+                    <i class="bi bi-people-fill fs-4"></i>
+                </div>
+            </div>
+            <div class="mt-2 text-muted small">
+                Across {{ groups_data|length }} ministries
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Time Breakdown Cards (Today, Week, Month) -->
+<div class="row g-3 mb-4">
+    <div class="col-12 col-md-4">
+        <div class="card p-3 bg-white">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="fw-bold text-secondary"><i class="bi bi-calendar-event me-1"></i> Today</span>
+                <span class="badge bg-primary">{{ time_totals.today_count }} gifts</span>
+            </div>
+            <h4 class="fw-bold mb-0 text-navy">{{ config.CURRENCY }} {{ "%.2f"|format(time_totals.today_net) }}</h4>
+            <div class="small text-muted">Fees: {{ config.CURRENCY }} {{ "%.2f"|format(time_totals.today_fee) }}</div>
+        </div>
+    </div>
+    <div class="col-12 col-md-4">
+        <div class="card p-3 bg-white">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="fw-bold text-secondary"><i class="bi bi-calendar3-week me-1"></i> This Week</span>
+                <span class="badge bg-primary">{{ time_totals.week_count }} gifts</span>
+            </div>
+            <h4 class="fw-bold mb-0 text-navy">{{ config.CURRENCY }} {{ "%.2f"|format(time_totals.week_net) }}</h4>
+            <div class="small text-muted">Fees: {{ config.CURRENCY }} {{ "%.2f"|format(time_totals.week_fee) }}</div>
+        </div>
+    </div>
+    <div class="col-12 col-md-4">
+        <div class="card p-3 bg-white">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="fw-bold text-secondary"><i class="bi bi-calendar-month me-1"></i> This Month</span>
+                <span class="badge bg-primary">{{ time_totals.month_count }} gifts</span>
+            </div>
+            <h4 class="fw-bold mb-0 text-navy">{{ config.CURRENCY }} {{ "%.2f"|format(time_totals.month_net) }}</h4>
+            <div class="small text-muted">Fees: {{ config.CURRENCY }} {{ "%.2f"|format(time_totals.month_fee) }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <!-- Totals by Church Fund -->
+    <div class="col-12 col-lg-6">
+        <div class="card p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0"><i class="bi bi-pie-chart me-2 text-primary"></i>Totals by Fund</h5>
+                <span class="text-muted small">Net Giving</span>
+            </div>
+            {% for f in fund_totals %}
+            <div class="mb-3">
+                <div class="d-flex justify-content-between small fw-semibold mb-1">
+                    <span>{{ f.fund_name }} ({{ f.count }} donations)</span>
+                    <span>{{ config.CURRENCY }} {{ "%.2f"|format(f.total_net) }}</span>
+                </div>
+                {% set pct = (f.total_net / metrics.net_amount * 100) if metrics.net_amount > 0 else 0 %}
+                <div class="progress" style="height: 8px;">
+                    <div class="progress-bar {% if f.fund_code == 'tithe' %}bg-primary{% elif f.fund_code == 'offering' %}bg-success{% elif f.fund_code == 'building' %}bg-warning{% else %}bg-info{% endif %}" role="progressbar" style="width: {{ pct }}%"></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Totals by Member Group / Fellowship -->
+    <div class="col-12 col-lg-6">
+        <div class="card p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0"><i class="bi bi-diagram-3 me-2 text-primary"></i>Giving by Community / Ministry</h5>
+                <a href="{{ url_for('admin_members') }}" class="small text-decoration-none">View All Members</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Community / Group</th>
+                            <th class="text-center">Members</th>
+                            <th class="text-end">Total Given</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for g in groups_data %}
+                        <tr>
+                            <td class="fw-semibold">{{ g.community_group }}</td>
+                            <td class="text-center"><span class="badge bg-secondary">{{ g.member_count }}</span></td>
+                            <td class="text-end fw-bold text-success">{{ config.CURRENCY }} {{ "%.2f"|format(g.total_given or 0.0) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Transactions -->
+<div class="card p-3 mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0"><i class="bi bi-clock-history me-2 text-primary"></i>Recent Giving Records</h5>
+        <a href="{{ url_for('admin_transactions') }}" class="btn btn-sm btn-outline-secondary">All Records</a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Ref / Date</th>
+                    <th>Member / Phone</th>
+                    <th>Fund</th>
+                    <th>Base Gift</th>
+                    <th>Fee</th>
+                    <th>Total Paid</th>
+                    <th>Status</th>
+                    <th>SMS Receipt</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tx in recent_transactions %}
+                <tr>
+                    <td>
+                        <span class="fw-bold font-monospace">{{ tx.reference }}</span>
+                        <div class="text-muted small">{{ tx.created_at }}</div>
+                    </td>
+                    <td>
+                        <div class="fw-semibold">{{ tx.member_name or "Storehouse Giver" }}</div>
+                        <div class="text-muted small">{{ tx.phone_number }}</div>
+                    </td>
+                    <td>
+                        <span class="badge bg-light text-dark border">{{ tx.fund_code|capitalize }}</span>
+                    </td>
+                    <td class="fw-bold text-success">{{ config.CURRENCY }} {{ "%.2f"|format(tx.amount) }}</td>
+                    <td class="text-muted small">+{{ config.CURRENCY }} {{ "%.2f"|format(tx.fee) }}</td>
+                    <td class="fw-semibold">{{ config.CURRENCY }} {{ "%.2f"|format(tx.total_amount) }}</td>
+                    <td>
+                        {% if tx.status == 'success' %}
+                            <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Paid</span>
+                        {% elif tx.status == 'pending' %}
+                            <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>Pending</span>
+                        {% else %}
+                            <span class="badge bg-secondary">{{ tx.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if tx.sms_receipt_sent %}
+                            <span class="text-success small"><i class="bi bi-chat-check-fill me-1"></i>Delivered</span>
+                        {% else %}
+                            <span class="text-muted small"><i class="bi bi-dash"></i></span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="text-center py-4 text-muted">No transactions recorded yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

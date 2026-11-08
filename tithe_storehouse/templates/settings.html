@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block title %}Setup & USSD / Webhook Simulator{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-4">
+    <div class="col-12">
+        <h3 class="fw-bold text-navy mb-0"><i class="bi bi-sliders me-2"></i>Storehouse Setup & Interactive Tools</h3>
+        <p class="text-muted small mb-0">Endpoints, processing charge rates, and interactive USSD / Webhook simulators</p>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <!-- Fee Configuration Card -->
+    <div class="col-12 col-lg-6">
+        <div class="card p-3 h-100">
+            <h5 class="fw-bold text-navy mb-3"><i class="bi bi-calculator me-2 text-primary"></i>Transparent Charge Policy</h5>
+            <p class="small text-muted">Configured via <code>.env</code> file. The donor sees the exact breakdown before confirming; hidden fees are strictly prohibited.</p>
+
+            <ul class="list-group list-group-flush mb-3">
+                <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                    <span class="text-secondary">Fee Type</span>
+                    <span class="badge bg-primary">{{ config.FEE_TYPE }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                    <span class="text-secondary">Configured Rate</span>
+                    <span class="fw-bold">
+                        {% if config.FEE_TYPE == 'PERCENT' %}
+                            {{ config.FEE_VALUE }}%
+                        {% else %}
+                            {{ config.CURRENCY }} {{ config.FEE_VALUE }}
+                        {% endif %}
+                    </span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                    <span class="text-secondary">Maximum Fee Cap</span>
+                    <span class="fw-bold">{% if config.FEE_CAP %}{{ config.CURRENCY }} {{ config.FEE_CAP }}{% else %}None{% endif %}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                    <span class="text-secondary">Example Calculation for GHS 100.00</span>
+                    <span class="text-success fw-bold">
+                        Donor pays: GHS {{ "%.2f"|format(demo_fee.total) }} (Church gets: GHS {{ "%.2f"|format(demo_fee.base) }} | Fee: GHS {{ "%.2f"|format(demo_fee.fee) }})
+                    </span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Webhook & USSD Endpoints -->
+    <div class="col-12 col-lg-6">
+        <div class="card p-3 h-100">
+            <h5 class="fw-bold text-navy mb-3"><i class="bi bi-link-45deg me-2 text-primary"></i>Service Endpoints</h5>
+            <p class="small text-muted">Register these callback URLs in your telecom / gateway provider dashboards.</p>
+
+            <div class="mb-3">
+                <label class="form-label small fw-semibold text-secondary">Africa's Talking USSD Callback URL (POST)</label>
+                <div class="input-group">
+                    <span class="input-group-text font-monospace small">POST</span>
+                    <input type="text" readonly class="form-control font-monospace small" value="{{ config.BASE_URL }}/ussd">
+                </div>
+                <div class="form-text">Set this in Africa's Talking USSD Service Code routing.</div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label small fw-semibold text-secondary">Paystack Webhook URL (POST)</label>
+                <div class="input-group">
+                    <span class="input-group-text font-monospace small">POST</span>
+                    <input type="text" readonly class="form-control font-monospace small" value="{{ config.BASE_URL }}/webhook/paystack">
+                </div>
+                <div class="form-text">Configured in Paystack Dashboard -> Settings -> Preferences -> Webhooks.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Interactive In-Browser USSD Simulator -->
+<div class="row g-3 mb-4">
+    <div class="col-12 col-lg-7">
+        <div class="card p-3">
+            <h5 class="fw-bold text-navy mb-2"><i class="bi bi-phone me-2 text-primary"></i>Interactive USSD Simulator</h5>
+            <p class="small text-muted">Test the exact Africa's Talking session transitions directly in your browser.</p>
+
+            <form method="POST" action="{{ url_for('admin_test_ussd') }}" class="row g-2 mb-3">
+                <div class="col-12 col-sm-6">
+                    <label class="form-label small fw-semibold">Phone Number</label>
+                    <input type="text" name="phone_number" class="form-control" value="{{ test_phone or '+233241112233' }}" required>
+                </div>
+                <div class="col-12 col-sm-6">
+                    <label class="form-label small fw-semibold">Dial String / Steps (e.g. 1*50*1)</label>
+                    <input type="text" name="text" class="form-control" value="{{ test_text or '' }}" placeholder="Empty for root menu">
+                </div>
+                <div class="col-12 d-flex gap-2">
+                    <button type="submit" class="btn btn-church"><i class="bi bi-play-fill me-1"></i> Send USSD Input</button>
+                    <a href="{{ url_for('admin_settings') }}" class="btn btn-outline-secondary">Clear / Reset</a>
+                </div>
+            </form>
+
+            {% if test_response %}
+            <div class="border rounded p-3 bg-dark text-light font-monospace">
+                <div class="text-warning small mb-1">// USSD Response (Africa's Talking Protocol)</div>
+                <pre class="mb-0 text-white" style="white-space: pre-wrap;">{{ test_response }}</pre>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Quick Webhook Simulator -->
+    <div class="col-12 col-lg-5">
+        <div class="card p-3">
+            <h5 class="fw-bold text-navy mb-2"><i class="bi bi-lightning-charge me-2 text-warning"></i>Simulate MoMo Payment</h5>
+            <p class="small text-muted">Simulate a successful Paystack <code>charge.success</code> webhook for pending transactions.</p>
+
+            <form method="POST" action="{{ url_for('admin_simulate_payment') }}">
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Transaction Reference</label>
+                    <input type="text" name="reference" class="form-control font-monospace" placeholder="e.g. TS-T-XXXXXX" required>
+                </div>
+                <button type="submit" class="btn btn-success w-100">
+                    <i class="bi bi-check-circle me-1"></i> Trigger Payment Webhook
+                </button>
+            </form>
+
+            <div class="mt-3 p-2 bg-light rounded small text-muted">
+                Triggering payment will:
+                <ol class="mb-0 ps-3">
+                    <li>Mark transaction as <code>success</code></li>
+                    <li>Update member giving ledger</li>
+                    <li>Dispatch SMS receipt via Africa's Talking</li>
+                    <li>Write immutable audit trail entry</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
